@@ -1,13 +1,3 @@
-type _Schema_
-  @fulltext(
-    name: "covenSearch"
-    language: en
-    algorithm: rank
-    include: [{entity: "TokenMetadata", fields:
-      [{ name: "name" }, { name: "description" }, { name: "type" }, { name: "sun" }, { name: "moon" }, { name: "rising" }
-    ] }]
-  )
-
 type Token @entity {
   id: ID!
   tokenID: BigInt!
@@ -18,15 +8,12 @@ type Token @entity {
 }
 
 type TokenMetadata @entity {
-  id: ID!
-  image: String!
-  externalURL: String!
+id: ID!
   name: String!
+  identifier: BigInt!
   description: String!
-  type: String!
-  sun: String!
-  moon: String!
-  rising: String!
+  tags: [String!]!
+  image: String!
 }
 
 type User @entity {

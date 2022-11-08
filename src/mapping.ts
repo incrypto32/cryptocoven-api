@@ -1,82 +1,70 @@
 import {
   Transfer as TransferEvent,
-  Token as TokenContract
-} from '../generated/Token/Token'
-import { ipfs, json, Bytes, dataSource } from '@graphprotocol/graph-ts'
-
+  Token as TokenContract,
+} from "../generated/Token/Token";
 import {
-Token, User, TokenMetadata
-} from '../generated/schema'
+  ipfs,
+  json,
+  Bytes,
+  dataSource,
+  DataSourceContext,
+} from "@graphprotocol/graph-ts";
 
-import {
-  TokenMetadata as TokenMetadataTemplate
-  } from '../generated/templates'
+import { Token, User, TokenMetadata } from "../generated/schema";
 
-const ipfshash = "QmaXzZhcYnsisuue5WRdQDH6FDvqkLQX1NckLqBYeYYEfm"
+import { TokenMetadata as TokenMetadataTemplate } from "../generated/templates";
+
+const ipfshash = "QmaXzZhcYnsisuue5WRdQDH6FDvqkLQX1NckLqBYeYYEfm";
 
 export function handleTransfer(event: TransferEvent): void {
   let token = Token.load(event.params.tokenId.toString());
   if (!token) {
     token = new Token(event.params.tokenId.toString());
     token.tokenID = event.params.tokenId;
- 
-    token.tokenURI = "/" + event.params.tokenId.toString() + ".json";
-    const tokenIpfsHash = ipfshash + token.tokenURI
+    let contract = TokenContract.bind(dataSource.address());
+    let tokenURI = contract.tokenURI(event.params.tokenId);
+    token.tokenURI = tokenURI;
+    const tokenIpfsHash = tokenURI.substring(7);
     token.ipfsURI = tokenIpfsHash;
-
-    TokenMetadataTemplate.create(tokenIpfsHash);
+    const dataSourceContext = new DataSourceContext();
+    dataSourceContext.setBigInt("tokenId", event.params.tokenId);
+    TokenMetadataTemplate.createWithContext(tokenIpfsHash, dataSourceContext);
   }
 
   token.updatedAtTimestamp = event.block.timestamp;
   token.owner = event.params.to.toHexString();
   token.save();
- 
+
   let user = User.load(event.params.to.toHexString());
   if (!user) {
     user = new User(event.params.to.toHexString());
     user.save();
   }
- }
+}
 
- export function handleMetadata(content: Bytes): void {
-
-  let tokenMetadata = new TokenMetadata(String.UTF8.decode(dataSource.address().buffer));
-  const value = json.fromBytes(content).toObject()
+export function handleMetadata(content: Bytes): void {
+  let tokenMetadata = new TokenMetadata(
+    dataSource
+      .context()
+      .getBigInt("tokenId")
+      .toString()
+  );
+  const value = json.fromBytes(content).toObject();
   if (value) {
-    const image = value.get('image')
-    const name = value.get('name')
-    const description = value.get('description')
-    const externalURL = value.get('external_url')
+    const image = value.get("image");
+    const name = value.get("name");
+    const description = value.get("description");
+    const identifier = value.get("identifier");
+    const tags = value.get("tags");
 
-    if (name && image && description && externalURL) {
-      tokenMetadata.name = name.toString()
-      tokenMetadata.image = image.toString()
-      tokenMetadata.externalURL = externalURL.toString()
-      tokenMetadata.description = description.toString()
+    if (name && image && description && identifier && tags) {
+      tokenMetadata.name = name.toString();
+      tokenMetadata.image = image.toString();
+      tokenMetadata.description = description.toString();
+      tokenMetadata.identifier = identifier.toBigInt();
+      tokenMetadata.tags = tags.toArray().map<string>((tag) => tag.toString());
     }
-
-    const coven = value.get('coven')
-    if (coven) {
-      let covenData = coven.toObject()
-      const type = covenData.get('type')
-      if (type) {
-        tokenMetadata.type = type.toString()
-      }
-
-      const birthChart = covenData.get('birthChart')
-      if (birthChart) {
-        const birthChartData = birthChart.toObject()
-        const sun = birthChartData.get('sun')
-        const moon = birthChartData.get('moon')
-        const rising = birthChartData.get('rising')
-        if (sun && moon && rising) {
-          tokenMetadata.sun = sun.toString()
-          tokenMetadata.moon = moon.toString()
-          tokenMetadata.rising = rising.toString()
-        }
-      }
-    }
-  tokenMetadata.save()
   }
- }
- 
+
+  tokenMetadata.save();
+}

@@ -60,13 +60,21 @@ export class Token extends Entity {
     this.set("tokenURI", Value.fromString(value));
   }
 
-  get ipfsURI(): string {
+  get ipfsURI(): string | null {
     let value = this.get("ipfsURI");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set ipfsURI(value: string) {
-    this.set("ipfsURI", Value.fromString(value));
+  set ipfsURI(value: string | null) {
+    if (!value) {
+      this.unset("ipfsURI");
+    } else {
+      this.set("ipfsURI", Value.fromString(<string>value));
+    }
   }
 
   get updatedAtTimestamp(): BigInt | null {
@@ -127,24 +135,6 @@ export class TokenMetadata extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get image(): string {
-    let value = this.get("image");
-    return value!.toString();
-  }
-
-  set image(value: string) {
-    this.set("image", Value.fromString(value));
-  }
-
-  get externalURL(): string {
-    let value = this.get("externalURL");
-    return value!.toString();
-  }
-
-  set externalURL(value: string) {
-    this.set("externalURL", Value.fromString(value));
-  }
-
   get name(): string {
     let value = this.get("name");
     return value!.toString();
@@ -152,6 +142,15 @@ export class TokenMetadata extends Entity {
 
   set name(value: string) {
     this.set("name", Value.fromString(value));
+  }
+
+  get identifier(): BigInt {
+    let value = this.get("identifier");
+    return value!.toBigInt();
+  }
+
+  set identifier(value: BigInt) {
+    this.set("identifier", Value.fromBigInt(value));
   }
 
   get description(): string {
@@ -163,40 +162,22 @@ export class TokenMetadata extends Entity {
     this.set("description", Value.fromString(value));
   }
 
-  get type(): string {
-    let value = this.get("type");
+  get tags(): Array<string> {
+    let value = this.get("tags");
+    return value!.toStringArray();
+  }
+
+  set tags(value: Array<string>) {
+    this.set("tags", Value.fromStringArray(value));
+  }
+
+  get image(): string {
+    let value = this.get("image");
     return value!.toString();
   }
 
-  set type(value: string) {
-    this.set("type", Value.fromString(value));
-  }
-
-  get sun(): string {
-    let value = this.get("sun");
-    return value!.toString();
-  }
-
-  set sun(value: string) {
-    this.set("sun", Value.fromString(value));
-  }
-
-  get moon(): string {
-    let value = this.get("moon");
-    return value!.toString();
-  }
-
-  set moon(value: string) {
-    this.set("moon", Value.fromString(value));
-  }
-
-  get rising(): string {
-    let value = this.get("rising");
-    return value!.toString();
-  }
-
-  set rising(value: string) {
-    this.set("rising", Value.fromString(value));
+  set image(value: string) {
+    this.set("image", Value.fromString(value));
   }
 }
 
