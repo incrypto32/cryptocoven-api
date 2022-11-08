@@ -14,7 +14,7 @@ import { Token, User, TokenMetadata } from "../generated/schema";
 
 import { TokenMetadata as TokenMetadataTemplate } from "../generated/templates";
 
-const ipfshash = "QmaXzZhcYnsisuue5WRdQDH6FDvqkLQX1NckLqBYeYYEfm";
+const ipfshash = "QmaNetSAWfTFevphZCEhkthpcCZb2FQtMqboYvYJNpo4bU";
 
 export function handleTransfer(event: TransferEvent): void {
   let token = Token.load(event.params.tokenId.toString());
@@ -22,9 +22,9 @@ export function handleTransfer(event: TransferEvent): void {
     token = new Token(event.params.tokenId.toString());
     token.tokenID = event.params.tokenId;
     let contract = TokenContract.bind(dataSource.address());
-    let tokenURI = contract.tokenURI(event.params.tokenId);
-    token.tokenURI = tokenURI;
-    const tokenIpfsHash = tokenURI.substring(7);
+    // let tokenURI = contract.tokenURI(event.params.tokenId);
+    token.tokenURI = ipfshash;
+    const tokenIpfsHash = ipfshash;
     token.ipfsURI = tokenIpfsHash;
     const dataSourceContext = new DataSourceContext();
     dataSourceContext.setBigInt("tokenId", event.params.tokenId);
